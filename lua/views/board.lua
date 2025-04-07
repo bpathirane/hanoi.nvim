@@ -1,9 +1,5 @@
 local M = {}
 
-function M.setup()
-    print "Running the hanoi.nvim setup function"
-end
-
 local function create_floating_win()
     local buf = vim.api.nvim_create_buf(false, true)
 
@@ -44,10 +40,12 @@ local function create_floating_win()
     if vim.api.nvim_win_is_valid(win) then
       vim.api.nvim_win_close(win, true)
     end
-  end, { buffer = buf, silent = true }) return buf, win
+  end, { buffer = buf, silent = true }) 
+
+    return buf, win
 end
 
-function M.open_towers_of_hanoi()
+function M.render(game)
     return create_floating_win()
 end
 
