@@ -5,25 +5,24 @@ local Game = {}
 Game.__index = Game
 
 function Game.new(numDisks)
-    local self = setmetatable({ }, Game)
-   
-    self.towers = {}
-    -- Create three towers
-    for t = 3, 1, -1 do
-	table.insert(self.towers, Tower.new(numDisks))
-    end
+  local self = setmetatable({}, Game)
 
-    -- Load the disks to the first tower
-    for i = numDisks, 1, -1 do
-	self.towers[1]:push(Disk:new(i))
-    end
+  self.towers = {}
+  -- Create three towers
+  for t = 3, 1, -1 do
+    table.insert(self.towers, Tower.new(numDisks))
+  end
 
-    return self
+  -- Load the disks to the first tower
+  for i = numDisks, 1, -1 do
+    self.towers[1]:push(Disk:new(i))
+  end
+
+  return self
 end
 
 function Game.solve()
-    print("Solve the game")
+  print('Solve the game')
 end
 
 return Game
-
