@@ -9,16 +9,15 @@ local state = {
 local create_window_configurations = function()
   local bg_width = vim.o.columns
   local bg_height = vim.o.lines
-  local tower_width = math.floor(bg_width / 3)
 
   local pnl_width = math.floor(bg_width * 0.7)
   local pnl_height = math.floor(bg_height * 0.5)
   local pnl_top = math.floor((bg_height - pnl_height) / 2)
   local pnl_left = math.floor((bg_width - pnl_width) / 2)
 
-  local header_height = 1 + 2 -- 1 + border
-  local footer_height = 1 -- 1, no border
-  local body_height = bg_height - header_height - footer_height - 2 - 1 -- for our own border
+  local tower_width = math.floor((pnl_width - 8) / 3) -- two columns padding on eitherside
+  local tower_height = math.floor(pnl_height - 6)
+  local tower_top = pnl_top + 4
 
   local configs = {
     background = {
@@ -26,6 +25,7 @@ local create_window_configurations = function()
       width = bg_width,
       height = bg_height,
       style = 'minimal',
+      border = 'rounded',
       col = 0,
       row = 0,
       zindex = 1,
@@ -42,8 +42,8 @@ local create_window_configurations = function()
     },
     header = {
       relative = 'editor',
-      width = bg_width,
-      height = 1,
+      width = pnl_width,
+      height = 2,
       style = 'minimal',
       border = 'rounded',
       col = pnl_left,
@@ -53,29 +53,29 @@ local create_window_configurations = function()
     tower1 = {
       relative = 'editor',
       width = tower_width,
-      height = body_height,
+      height = tower_height,
       style = 'minimal',
       border = 'rounded',
-      col = pnl_left,
-      row = pnl_top + 2,
+      col = pnl_left + 2,
+      row = tower_top,
     },
     tower2 = {
       relative = 'editor',
       width = tower_width,
-      height = body_height,
+      height = tower_height,
       style = 'minimal',
       border = 'rounded',
-      col = pnl_left + tower_width,
-      row = pnl_top + 2,
+      col = pnl_left + tower_width + 3,
+      row = tower_top,
     },
     tower3 = {
       relative = 'editor',
       width = tower_width,
-      height = body_height,
+      height = tower_height,
       style = 'minimal',
       border = 'rounded',
-      col = pnl_left + tower_width * 2,
-      row = pnl_top + 2,
+      col = pnl_left + tower_width * 2 + 3,
+      row = tower_top,
     },
     footer = {
       relative = 'editor',
@@ -83,60 +83,57 @@ local create_window_configurations = function()
       anchor = 'SW',
       height = 1,
       style = 'minimal',
-      -- TODO: Just a border on the top?
-      -- border = "rounded",
       col = pnl_left,
       row = bg_height - 1,
       zindex = 3,
     },
   }
+  -- print('Window configurations', vim.inspect(configs))
   return configs
 end
 
-local function create_floating_win()
+local function create_floating_window(opts, enter, lines)
+  enter = enter or false
   local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, true, opts)
+  -- vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
+  if lines then
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  end
+  return { buf = buf, win = win }
+end
 
+local function create_game_panel(game)
   local window_configs = create_window_configurations()
 
-  state.floats.background = create_floating_window(window_configs.background)
-  state.floats.header = create_floating_window(window_configs.header)
-  state.floats.footer = create_floating_window(window_configs.footer)
-  state.floats.tower1 = create_floating_window(window_configs.tower1, true)
-  state.floats.tower2 = create_floating_window(window_configs.tower2, true)
-  state.floats.tower3 = create_floating_window(window_configs.tower3, true)
+  state.floats.background = create_floating_window(window_configs.background, { 'background' })
+  state.floats.panel = create_floating_window(window_configs.panel, { 'panel' })
+  state.floats.header = create_floating_window(window_configs.header, { 'header' })
+  state.floats.footer = create_floating_window(window_configs.footer, { 'footer' })
+  state.floats.tower1 = create_floating_window(window_configs.tower1, false, { 'tower1' })
+  state.floats.tower2 = create_floating_window(window_configs.tower2, false, { 'tower2' })
+  state.floats.tower3 = create_floating_window(window_configs.tower3, false, { 'tower3' })
+  state.floats.footer = create_floating_window(window_configs.footer, false, { 'footer' })
 
-  local win = vim.api.nvim_open_win(buf, true, opts)
-
+  local win = state.floats.background.win
   vim.api.nvim_win_set_config(win, {
     title = ' Towers of Hanoi ',
     title_pos = 'center',
   })
-  -- Draw placeholder for towers
-  local lines = {
-    '',
-    '       |       |       |       ',
-    '      ---     ---     ---      ',
-    '     -----   -----   -----     ',
-    '    ------- ------- -------    ',
-    '     T1       T2       T3      ',
-  }
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 
   -- Set Esc key to close the window
   vim.keymap.set('n', '<Esc>', function()
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
+    for _, float in pairs(state.floats) do
+      if vim.api.nvim_win_is_valid(float.win) then
+        vim.api.nvim_win_close(float.win, true)
+      end
     end
-  end, { buffer = buf, silent = true })
-
-  return buf, win
+  end, { buffer = state.floats.background.buf, silent = true })
 end
 
 function M.render(game)
   state.game = game
-  return create_floating_win()
+  return create_game_panel(game)
 end
 
 return M
