@@ -15,7 +15,7 @@ function Game.new(numDisks)
 
   -- Load the disks to the first tower
   for i = numDisks, 1, -1 do
-    self.towers[1]:push(Disk:new(i))
+    self.towers[1]:push(Disk.new(i))
   end
 
   return self

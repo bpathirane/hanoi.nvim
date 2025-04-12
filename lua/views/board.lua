@@ -3,7 +3,7 @@ local Game = require('models.game')
 local M = {}
 local state = {
   game = nil,
-  floats = {},
+  floats = nil
 }
 
 local create_window_configurations = function()
@@ -63,7 +63,7 @@ local create_window_configurations = function()
       row = tower_top,
     }
     end
-  print('Window configurations', vim.inspect(configs))
+  -- print('Window configurations', vim.inspect(configs))
   return configs
 end
 
@@ -80,12 +80,12 @@ end
 
 local function create_game_panel(game)
   local window_configs = create_window_configurations()
-
+    local floats = {}
     for key, win in pairs(window_configs) do
-	state.floats[key] = create_floating_window(win, true, { tostring(key) })
+	floats[key] = create_floating_window(win, true, { tostring(key) })
     end
 
-  local win = state.floats.panel.win
+  local win = floats.panel.win
   vim.api.nvim_win_set_config(win, {
     title = ' Towers of Hanoi ',
     title_pos = 'center',
@@ -93,18 +93,38 @@ local function create_game_panel(game)
 
   -- Set Esc key to close the window
   vim.keymap.set('n', '<Esc>', function()
-	print('Closing all windows...')
-    for _, float in pairs(state.floats) do
+    print('Closing all windows...')
+    for _, float in pairs(floats) do
       if vim.api.nvim_win_is_valid(float.win) then
         vim.api.nvim_win_close(float.win, true)
       end
     end
-  end, { buffer = state.floats.panel.buf, silent = true })
+  end, { buffer = floats.panel.buf, silent = true })
+  return floats
+end
+
+local function render_tower(tower, float)
+    local stack = tower:get_stack()
+    local lines = {}
+    for _, disk in ipairs(stack) do
+	table.insert(lines, string.rep('+', disk.size ))
+end
+    print('Lines', lines)
+  if lines then
+    vim.api.nvim_buf_set_lines(float.buf, 0, -1, false, lines)
+  end
 end
 
 function M.render(game)
+    print('Rendering game...')
   state.game = game
-  return create_game_panel(game)
+  if not state.floats then
+      state.floats = create_game_panel(game)
+    end
+    print('Rendering towers', vim.inspect(game.towers))
+for i, tower in ipairs(game.towers) do
+    render_tower(tower, state.floats['tower' .. i])
+    end
 end
 
 return M
