@@ -15,7 +15,8 @@ local create_window_configurations = function()
   local pnl_top = math.floor((bg_height - pnl_height) / 2)
   local pnl_left = math.floor((bg_width - pnl_width) / 2)
 
-  local tower_width = math.floor((pnl_width - 8) / 3) -- two columns padding on eitherside
+    local tower_padding = 2
+  local tower_width = math.floor((pnl_width - tower_padding * 4) / 3) -- two columns padding on eitherside
   local tower_height = math.floor(pnl_height - 6)
   local tower_top = pnl_top + 4
 
@@ -50,33 +51,6 @@ local create_window_configurations = function()
       row = pnl_top,
       zindex = 3,
     },
-    tower1 = {
-      relative = 'editor',
-      width = tower_width,
-      height = tower_height,
-      style = 'minimal',
-      border = 'rounded',
-      col = pnl_left + 2,
-      row = tower_top,
-    },
-    tower2 = {
-      relative = 'editor',
-      width = tower_width,
-      height = tower_height,
-      style = 'minimal',
-      border = 'rounded',
-      col = pnl_left + tower_width + 3,
-      row = tower_top,
-    },
-    tower3 = {
-      relative = 'editor',
-      width = tower_width,
-      height = tower_height,
-      style = 'minimal',
-      border = 'rounded',
-      col = pnl_left + tower_width * 2 + 3,
-      row = tower_top,
-    },
     footer = {
       relative = 'editor',
       width = bg_width,
@@ -88,7 +62,18 @@ local create_window_configurations = function()
       zindex = 3,
     },
   }
-  -- print('Window configurations', vim.inspect(configs))
+    for i = 1, 3, 1 do
+    	configs['tower' .. i] = {
+      relative = 'editor',
+      width = tower_width,
+      height = tower_height,
+      style = 'minimal',
+      border = 'rounded',
+      col = pnl_left + (tower_padding * i) + (tower_width * (i - 1)),
+      row = tower_top,
+    }
+    end
+  print('Window configurations', vim.inspect(configs))
   return configs
 end
 
