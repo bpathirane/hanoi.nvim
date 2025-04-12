@@ -15,22 +15,12 @@ local create_window_configurations = function()
   local pnl_top = math.floor((bg_height - pnl_height) / 2)
   local pnl_left = math.floor((bg_width - pnl_width) / 2)
 
-    local tower_padding = 2
-  local tower_width = math.floor((pnl_width - tower_padding * 4) / 3) -- two columns padding on eitherside
-  local tower_height = math.floor(pnl_height - 6)
-  local tower_top = pnl_top + 4
+  local tower_padding = 2
+  local tower_width = math.floor((pnl_width - tower_padding * 3) / 3) -- two columns padding on eitherside
+  local tower_height = math.floor(pnl_height - 9)
+  local tower_top = pnl_top + 5
 
   local configs = {
-    background = {
-      relative = 'editor',
-      width = bg_width,
-      height = bg_height,
-      style = 'minimal',
-      border = 'rounded',
-      col = 0,
-      row = 0,
-      zindex = 1,
-    },
     panel = {
       relative = 'editor',
       width = pnl_width,
@@ -43,22 +33,22 @@ local create_window_configurations = function()
     },
     header = {
       relative = 'editor',
-      width = pnl_width,
+      width = pnl_width - 4,
       height = 2,
       style = 'minimal',
       border = 'rounded',
-      col = pnl_left,
-      row = pnl_top,
+      col = pnl_left + tower_padding,
+      row = pnl_top + 1,
       zindex = 3,
     },
     footer = {
       relative = 'editor',
-      width = bg_width,
-      anchor = 'SW',
+      width = pnl_width - 4,
       height = 1,
       style = 'minimal',
-      col = pnl_left,
-      row = bg_height - 1,
+    	border= 'rounded',
+      col = pnl_left + tower_padding,
+      row = tower_top + tower_height + 2,
       zindex = 3,
     },
   }
@@ -91,16 +81,11 @@ end
 local function create_game_panel(game)
   local window_configs = create_window_configurations()
 
-  state.floats.background = create_floating_window(window_configs.background, { 'background' })
-  state.floats.panel = create_floating_window(window_configs.panel, { 'panel' })
-  state.floats.header = create_floating_window(window_configs.header, { 'header' })
-  state.floats.footer = create_floating_window(window_configs.footer, { 'footer' })
-  state.floats.tower1 = create_floating_window(window_configs.tower1, false, { 'tower1' })
-  state.floats.tower2 = create_floating_window(window_configs.tower2, false, { 'tower2' })
-  state.floats.tower3 = create_floating_window(window_configs.tower3, false, { 'tower3' })
-  state.floats.footer = create_floating_window(window_configs.footer, false, { 'footer' })
+    for key, win in pairs(window_configs) do
+	state.floats[key] = create_floating_window(win, true, { tostring(key) })
+    end
 
-  local win = state.floats.background.win
+  local win = state.floats.panel.win
   vim.api.nvim_win_set_config(win, {
     title = ' Towers of Hanoi ',
     title_pos = 'center',
@@ -108,12 +93,13 @@ local function create_game_panel(game)
 
   -- Set Esc key to close the window
   vim.keymap.set('n', '<Esc>', function()
+	print('Closing all windows...')
     for _, float in pairs(state.floats) do
       if vim.api.nvim_win_is_valid(float.win) then
         vim.api.nvim_win_close(float.win, true)
       end
     end
-  end, { buffer = state.floats.background.buf, silent = true })
+  end, { buffer = state.floats.panel.buf, silent = true })
 end
 
 function M.render(game)
