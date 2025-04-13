@@ -128,11 +128,12 @@ end
 function M.render(game)
   state.game = game
     if not state.floats then
-	print('Creating all floats... ')
+	-- print('Creating all floats... ')
       state.floats = create_game_buffers(game)
     end
-    if not state.visible then
-	print('Make all buffers visible...')
+    local panel_id = state.floats.panel.win
+      if panel_id == nil or not vim.api.nvim_win_is_valid(panel_id) then
+	-- print('Make all buffers visible...')
 	showAllWindows(state.floats)
 	state.visible = true
     end

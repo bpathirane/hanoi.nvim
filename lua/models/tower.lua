@@ -33,7 +33,7 @@ function Tower:get_stack()
     for i = 1, #self.disks, 1 do
 	    table.insert(stack, i, self.disks[i])
     end
-    print(self.label .. " size: ", #self.disks)
+    -- print(self.label .. " size: ", #self.disks)
     return stack
 end
 
