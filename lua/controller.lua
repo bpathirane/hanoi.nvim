@@ -5,14 +5,14 @@ local M = {}
 local state = {}
 
 function M.setup()
-  print('Running the hanoi.nvim setup function')
+    print('Running the hanoi.nvim setup function')
 end
 
 function M.open_towers_of_hanoi()
     if not state.game then
-	state.game = Game.new(3)
+        state.game = Game.new(3)
     end
-  Board.render(state.game)
+    Board.render(state.game)
 end
 
 return M
