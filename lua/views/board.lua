@@ -106,23 +106,19 @@ end
 local function render_tower(tower, float)
     local stack = tower:get_stack()
     local lines = {}
-	print(tower.label .. " disks: ", vim.inspect(stack))
     for _, disk in ipairs(stack) do
 	table.insert(lines, string.rep('+', disk.size ))
     end
-    print('Lines', lines)
   if lines then
     vim.api.nvim_buf_set_lines(float.buf, 0, -1, false, lines)
   end
 end
 
 function M.render(game)
-    print('Rendering game...')
   state.game = game
   if not state.floats then
       state.floats = create_game_panel(game)
     end
-    print('Rendering towers', vim.inspect(game.towers))
 for i, tower in ipairs(game.towers) do
     render_tower(tower, state.floats['tower' .. i])
     end

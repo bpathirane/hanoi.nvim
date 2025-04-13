@@ -31,14 +31,9 @@ end
 function Tower:get_stack()
     local stack = {}
     for i = 1, #self.disks, 1 do
-	-- if i < start_index then
-	--     table.insert(stack, Disk.new(0))
-	-- else
 	    table.insert(stack, i, self.disks[i])
-	-- end
     end
     print(self.label .. " size: ", #self.disks)
-    print("Produced stack for tower " .. self.label, vim.inspect(stack))
     return stack
 end
 
