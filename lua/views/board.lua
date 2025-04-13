@@ -1,5 +1,3 @@
-local Game = require('models.game')
-
 local M = {}
 local state = {
   game = nil,
@@ -67,39 +65,52 @@ local create_window_configurations = function()
   return configs
 end
 
-local function create_floating_window(opts, enter, lines)
+local function create_game_buffer(opts, enter, lines)
   enter = enter or false
   local buf = vim.api.nvim_create_buf(false, true)
-  local win = vim.api.nvim_open_win(buf, true, opts)
+  -- local win = vim.api.nvim_open_win(buf, true, opts)
   -- vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
   if lines then
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end
-  return { buf = buf, win = win }
+  return { buf = buf, opts = opts }
 end
 
-local function create_game_panel(game)
-  local window_configs = create_window_configurations()
-    local floats = {}
-    for key, win in pairs(window_configs) do
-	floats[key] = create_floating_window(win, true, { tostring(key) })
-    end
+local hideAllWindows = function(floats)
+    for _, float in pairs(floats) do
+      if vim.api.nvim_win_is_valid(float.win) then
+        vim.api.nvim_win_hide(float.win)
+      end
+   end
+   state.visible = false
+end
 
+local showAllWindows = function (floats)
+    for _, float in pairs(floats) do
+      local win = vim.api.nvim_open_win(float.buf, true, float.opts)
+      float.win = win
+  -- vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
+   end
   local win = floats.panel.win
-  vim.api.nvim_win_set_config(win, {
+    vim.api.nvim_win_set_config(win, {
     title = ' Towers of Hanoi ',
     title_pos = 'center',
   })
+end
 
-  -- Set Esc key to close the window
-  vim.keymap.set('n', '<Esc>', function()
-    print('Closing all windows...')
-    for _, float in pairs(floats) do
-      if vim.api.nvim_win_is_valid(float.win) then
-        vim.api.nvim_win_close(float.win, true)
-      end
+local function create_game_buffers(game)
+  local window_configs = create_window_configurations()
+    local floats = {}
+    for key, opts in pairs(window_configs) do
+	floats[key] = create_game_buffer(opts, true, { tostring(key) })
     end
-  end, { buffer = floats.panel.buf, silent = true })
+
+    for _, float in pairs(floats) do
+	vim.keymap.set('n', '<Esc>', function ()
+	    hideAllWindows(state.floats)
+        end , { buffer = float.buf, silent = true })
+    end
+  -- Set Esc key to close the window
   return floats
 end
 
@@ -109,18 +120,24 @@ local function render_tower(tower, float)
     for _, disk in ipairs(stack) do
 	table.insert(lines, string.rep('+', disk.size ))
     end
-  if lines then
-    vim.api.nvim_buf_set_lines(float.buf, 0, -1, false, lines)
-  end
+      if lines then
+	vim.api.nvim_buf_set_lines(float.buf, 0, -1, false, lines)
+      end
 end
 
 function M.render(game)
   state.game = game
-  if not state.floats then
-      state.floats = create_game_panel(game)
+    if not state.floats then
+	print('Creating all floats... ')
+      state.floats = create_game_buffers(game)
     end
-for i, tower in ipairs(game.towers) do
-    render_tower(tower, state.floats['tower' .. i])
+    if not state.visible then
+	print('Make all buffers visible...')
+	showAllWindows(state.floats)
+	state.visible = true
+    end
+    for i, tower in ipairs(game.towers) do
+	render_tower(tower, state.floats['tower' .. i])
     end
 end
 
