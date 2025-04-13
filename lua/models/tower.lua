@@ -2,12 +2,22 @@ local Disk = require('models.disk')
 local Tower = {}
 Tower.__index = Tower
 
-function Tower.new(capacity)
-  return setmetatable({ capacity = capacity, disks = {} }, Tower)
+function Tower.new(label, capacity)
+  return setmetatable({ label = label, capacity = capacity, disks = {} }, Tower)
 end
 
 function Tower:push(disk)
-  return table.insert(self.disks, disk)
+    if getmetatable(disk) == Disk then
+	table.insert(self.disks, 1, disk)
+    elseif type(disk) == "number" then
+	if disk > 0 then
+	table.insert(self.disks, 1, Disk.new(disk))
+	else
+	    error("Disk has to be of a positive size")
+	end
+	else
+	    error("Expects an instance of disk or a number. Got type " .. disk)
+    end
 end
 
 function Tower:pop()
@@ -20,15 +30,15 @@ end
 
 function Tower:get_stack()
     local stack = {}
-    local start_index = self.capacity - #self.disks
-    for i = 1, self.capacity do
-	if i < start_index then
-	    table.insert(stack, Disk.new(0))
-	else
-	    table.insert(stack, self.disks[i - start_index])
-	end
+    for i = 1, #self.disks, 1 do
+	-- if i < start_index then
+	--     table.insert(stack, Disk.new(0))
+	-- else
+	    table.insert(stack, i, self.disks[i])
+	-- end
     end
-    print("Produced stack", vim.inspect(stack))
+    print(self.label .. " size: ", #self.disks)
+    print("Produced stack for tower " .. self.label, vim.inspect(stack))
     return stack
 end
 

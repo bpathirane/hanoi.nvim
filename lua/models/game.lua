@@ -9,8 +9,8 @@ function Game.new(numDisks)
 
   self.towers = {}
   -- Create three towers
-  for t = 3, 1, -1 do
-    table.insert(self.towers, Tower.new(numDisks))
+  for t = 1, 3, 1 do
+    table.insert(self.towers, Tower.new('Tower ' .. t, numDisks))
   end
 
   -- Load the disks to the first tower

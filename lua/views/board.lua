@@ -106,9 +106,10 @@ end
 local function render_tower(tower, float)
     local stack = tower:get_stack()
     local lines = {}
+	print(tower.label .. " disks: ", vim.inspect(stack))
     for _, disk in ipairs(stack) do
 	table.insert(lines, string.rep('+', disk.size ))
-end
+    end
     print('Lines', lines)
   if lines then
     vim.api.nvim_buf_set_lines(float.buf, 0, -1, false, lines)
