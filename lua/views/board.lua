@@ -45,7 +45,8 @@ local function create_game_buffer(lines)
 end
 
 local function create_game_buffers()
-    local window_configs = winc.create_window_configurations()
+    local window_configs = winc.create_window_configurations(state.dims)
+    print('Created window configuration: ', vim.inspect(window_configs))
     local floats = {}
     for key, confg in pairs(window_configs) do
         floats[key] = {}
@@ -76,9 +77,10 @@ end
 
 function M.render(game)
     state.game = game
+    state.dims = winc.calculate_window_dimensions()
+    -- print('Created the window dimensions: ', vim.inspect(state.dims))
     if not state.floats then
         state.floats = create_game_buffers()
-        -- print('Created game buffers', vim.inspect(state.floats))
     end
     local panel_id = state.floats.panel.win
     if panel_id == nil or not vim.api.nvim_win_is_valid(panel_id) then
