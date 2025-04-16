@@ -2,18 +2,24 @@ local M = {}
 
 M.double_border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
 
-local calculate_window_dimensions = function()
+local calculate_window_dimensions = function(disks)
     local bg_width = vim.o.columns
     local bg_height = vim.o.lines
 
-    local pnl_width = math.floor(bg_width * 0.7)
-    local pnl_height = math.floor(bg_height * 0.5)
+    local tower_padding = 2
+    local disk_block_width = 2 -- Disks are rendered as blocks
+
+    local disk_block_height = 2
+    local tower_width = math.floor(bg_width * 0.2) -- two columns padding on eitherside
+    tower_width = tower_width + (tower_width % disk_block_width)
+    local tower_height = disk_block_height * (disks + 1)
+
+    local header_height = 1
+    local footer_height = 1
+    local pnl_width = tower_width * 3 + tower_padding * 4
+    local pnl_height = tower_height + tower_padding * 3 + header_height + footer_height
     local pnl_top = math.floor((bg_height - pnl_height) / 2)
     local pnl_left = math.floor((bg_width - pnl_width) / 2)
-
-    local tower_padding = 2
-    local tower_width = math.floor((pnl_width - tower_padding * 3) / 3) -- two columns padding on eitherside
-    local tower_height = math.floor(pnl_height - 9)
 
     local dims = {
         background = {
@@ -40,7 +46,7 @@ local calculate_window_dimensions = function()
     }
 
     dims.header = {
-        height = 1,
+        height = header_height,
         width = dims.panel.content_width,
         top = dims.panel.content_top,
         left = dims.panel.left + dims.panel.padding
@@ -56,7 +62,7 @@ local calculate_window_dimensions = function()
     end
 
     dims.footer = {
-        height = 1,
+        height = footer_height,
         width = dims.panel.content_width,
         top = dims.panel.content_top + dims.panel.padding * 2 + dims.header.height + dims.towers.height,
         left = dims.panel.content_left

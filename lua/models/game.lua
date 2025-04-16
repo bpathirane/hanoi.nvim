@@ -5,7 +5,7 @@ local Game = {}
 Game.__index = Game
 
 function Game.new(numDisks)
-    local self = setmetatable({}, Game)
+    local self = setmetatable({ disks = numDisks }, Game)
 
     self.towers = {}
     -- Create three towers

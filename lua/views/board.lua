@@ -77,7 +77,7 @@ end
 
 function M.render(game)
     state.game = game
-    state.dims = winc.calculate_window_dimensions()
+    state.dims = winc.calculate_window_dimensions(state.game.disks)
     -- print('Created the window dimensions: ', vim.inspect(state.dims))
     if not state.floats then
         state.floats = create_game_buffers()
