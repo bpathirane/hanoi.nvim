@@ -5,6 +5,7 @@ local state = {
     floats = nil
 }
 local disk_char = '\u{2593}' --'\u{1F7E7}'  ▓, an orange block respectively
+local padding_char = ' '
 
 local hideAllWindows = function(floats)
     for _, float in pairs(floats) do
@@ -46,7 +47,6 @@ end
 
 local function create_game_buffers()
     local window_configs = winc.create_window_configurations(state.dims)
-    print('Created window configuration: ', vim.inspect(window_configs))
     local floats = {}
     for key, confg in pairs(window_configs) do
         floats[key] = {}
@@ -64,9 +64,17 @@ end
 
 local function render_tower(tower, float)
     local stack = tower:get_stack()
+    print('Tower float configuration: ', vim.inspect(float))
     local lines = {}
+    local disk_char_len = string.len(disk_char)
     for _, disk in ipairs(stack) do
-        table.insert(lines, string.rep(disk_char, disk.size))
+        local dl = string.rep(disk_char, disk.size * float.confg.dims.disk_block_width)
+        local disk_ln = string.len(dl) / disk_char_len
+        local disk_padding = string.rep(padding_char, (float.confg.dims.width - disk_ln) / 2)
+        local disk_line = disk_padding .. dl .. disk_padding
+        for i = float.confg.dims.disk_block_height, 1, -1 do
+            table.insert(lines, disk_line)
+        end
     end
     if lines then
         vim.api.nvim_set_option_value('modifiable', true, { buf = float.buf })

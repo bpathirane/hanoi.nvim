@@ -2,17 +2,17 @@ local M = {}
 
 M.double_border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
 
-local calculate_window_dimensions = function(disks)
+local calculate_window_dimensions = function(num_disks)
     local bg_width = vim.o.columns
     local bg_height = vim.o.lines
 
     local tower_padding = 2
-    local disk_block_width = 2 -- Disks are rendered as blocks
+    local disk_block_width = 4 -- Disks are rendered as blocks
 
     local disk_block_height = 2
     local tower_width = math.floor(bg_width * 0.2) -- two columns padding on eitherside
     tower_width = tower_width + (tower_width % disk_block_width)
-    local tower_height = disk_block_height * (disks + 1)
+    local tower_height = disk_block_height * (num_disks + 1)
 
     local header_height = 1
     local footer_height = 1
@@ -54,6 +54,8 @@ local calculate_window_dimensions = function(disks)
 
     for i = 1, 3, 1 do
         dims['tower' .. i] = {
+            disk_block_height = disk_block_height,
+            disk_block_width = disk_block_width,
             width = tower_width,
             height = tower_height,
             col = dims.panel.content_left + (tower_padding * (i - 1)) + (tower_width * (i - 1)),
@@ -73,6 +75,7 @@ end
 local create_window_configurations = function(dims)
     local configs = {
         panel = {
+            dims = dims.panel,
             enter = false,
             opts = {
                 relative = 'editor',
@@ -89,6 +92,7 @@ local create_window_configurations = function(dims)
             title_pos = 'center'
         },
         header = {
+            dims = dims.header,
             opts = {
                 relative = 'editor',
                 width = dims.header.width,
@@ -103,6 +107,7 @@ local create_window_configurations = function(dims)
             lines = { "Game header" }
         },
         footer = {
+            dims = dims.footer,
             opts = {
                 relative = 'editor',
                 width = dims.footer.width,
@@ -120,6 +125,7 @@ local create_window_configurations = function(dims)
     for i = 1, 3, 1 do
         local tkey = 'tower' .. i
         configs[tkey] = {
+            dims = dims[tkey],
             opts = {
                 relative = 'editor',
                 width = dims[tkey].width,
