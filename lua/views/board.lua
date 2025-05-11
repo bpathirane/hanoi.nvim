@@ -55,6 +55,9 @@ local function create_game_buffers()
     end
 
     for _, float in pairs(floats) do
+        vim.keymap.set('n', 'q', function()
+            hideAllWindows(state.floats)
+        end, { buffer = float.buf, silent = true })
         vim.keymap.set('n', '<Esc>', function()
             hideAllWindows(state.floats)
         end, { buffer = float.buf, silent = true })
@@ -67,6 +70,10 @@ local function render_tower(tower, float)
     print('Tower float configuration: ', vim.inspect(float))
     local lines = {}
     local disk_char_len = string.len(disk_char)
+    local emtpy_lines = float.confg.dims.height - (#stack * float.confg.dims.disk_block_height)
+    for i = emtpy_lines, 1, -1 do
+        table.insert(lines, string.rep(padding_char, float.confg.dims.width))
+    end
     for _, disk in ipairs(stack) do
         local dl = string.rep(disk_char, disk.size * float.confg.dims.disk_block_width)
         local disk_ln = string.len(dl) / disk_char_len
