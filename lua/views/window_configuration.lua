@@ -1,6 +1,7 @@
 local M = {}
 
 M.double_border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
+M.single_border = { "┌", "─", "┐", "│", "┘", "─", "└", "│" }
 
 local calculate_window_dimensions = function(num_disks)
     local bg_width = vim.o.columns
@@ -54,6 +55,7 @@ local calculate_window_dimensions = function(num_disks)
 
     for i = 1, 3, 1 do
         dims['tower' .. i] = {
+            is_active = i == 1,
             disk_block_height = disk_block_height,
             disk_block_width = disk_block_width,
             width = tower_width,
@@ -72,19 +74,19 @@ local calculate_window_dimensions = function(num_disks)
     return dims
 end
 
-local create_window_configurations = function(dims)
+local create_window_configurations = function(dimensions)
     local configs = {
         panel = {
-            dims = dims.panel,
+            dims = dimensions.panel,
             enter = false,
             opts = {
                 relative = 'editor',
-                width = dims.panel.width,
-                height = dims.panel.height,
+                width = dimensions.panel.width,
+                height = dimensions.panel.height,
                 style = 'minimal',
                 border = 'rounded',
-                col = dims.panel.left,
-                row = dims.panel.top,
+                col = dimensions.panel.left,
+                row = dimensions.panel.top,
                 zindex = 2,
             },
             lines = {},
@@ -92,30 +94,30 @@ local create_window_configurations = function(dims)
             title_pos = 'center'
         },
         header = {
-            dims = dims.header,
+            dims = dimensions.header,
             opts = {
                 relative = 'editor',
-                width = dims.header.width,
+                width = dimensions.header.width,
                 height = 1,
                 style = 'minimal',
                 border = 'rounded',
-                col = dims.header.left,
-                row = dims.header.top,
+                col = dimensions.header.left,
+                row = dimensions.header.top,
                 zindex = 3,
             },
             enter = false,
             lines = { "Game header" }
         },
         footer = {
-            dims = dims.footer,
+            dims = dimensions.footer,
             opts = {
                 relative = 'editor',
-                width = dims.footer.width,
+                width = dimensions.footer.width,
                 height = 1,
                 style = 'minimal',
                 border = 'rounded',
-                col = dims.footer.left,
-                row = dims.footer.top,
+                col = dimensions.footer.left,
+                row = dimensions.footer.top,
                 zindex = 30,
             },
             enter = false,
@@ -125,15 +127,15 @@ local create_window_configurations = function(dims)
     for i = 1, 3, 1 do
         local tkey = 'tower' .. i
         configs[tkey] = {
-            dims = dims[tkey],
+            dims = dimensions[tkey],
             opts = {
                 relative = 'editor',
-                width = dims[tkey].width,
-                height = dims[tkey].height,
+                width = dimensions[tkey].width,
+                height = dimensions[tkey].height,
                 style = 'minimal',
-                border = M.double_border,
-                col = dims[tkey].col,
-                row = dims[tkey].row,
+                border = dimensions[tkey].is_active and M.double_border or M.single_border,
+                col = dimensions[tkey].col,
+                row = dimensions[tkey].row,
             },
             enter = false,
             lines = {},

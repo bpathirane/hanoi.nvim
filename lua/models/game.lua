@@ -4,21 +4,21 @@ local Disk = require('models.disk')
 local Game = {}
 Game.__index = Game
 
-function Game.new(numDisks)
-    local self = setmetatable({ disks = numDisks }, Game)
+function Game:new(numDisks)
+    local obj = setmetatable({ disks = numDisks }, self)
 
-    self.towers = {}
+    obj.towers = {}
     -- Create three towers
     for t = 1, 3, 1 do
-        table.insert(self.towers, Tower.new('Tower ' .. t, numDisks))
+        table.insert(obj.towers, Tower.new('Tower ' .. t, numDisks))
     end
 
     -- Load the disks to the first tower
     for i = numDisks, 1, -1 do
-        self.towers[1]:push(Disk.new(i))
+        obj.towers[1]:push(Disk.new(i))
     end
 
-    return self
+    return obj
 end
 
 function Game.solve()

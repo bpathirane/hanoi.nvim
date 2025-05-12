@@ -1,9 +1,12 @@
 local winc = require('views.window_configuration')
-local M = {}
-local state = {
-    game = nil,
-    floats = nil
-}
+local Board = {}
+-- Set the method lookup back to itself
+Board.__index = Board
+
+function Board:new(game, controller)
+    return setmetatable({ game = game, controller = controller }, self)
+end
+
 local disk_char = '\u{2593}' --'\u{1F7E7}'  ▓, an orange block respectively
 local padding_char = ' '
 
@@ -45,8 +48,8 @@ local function create_game_buffer(lines)
     return buf
 end
 
-local function create_game_buffers()
-    local window_configs = winc.create_window_configurations(state.dims)
+local function create_game_buffers(dimensions)
+    local window_configs = winc.create_window_configurations(dimensions)
     local floats = {}
     for key, confg in pairs(window_configs) do
         floats[key] = {}
@@ -54,14 +57,6 @@ local function create_game_buffers()
         floats[key].confg = confg
     end
 
-    for _, float in pairs(floats) do
-        vim.keymap.set('n', 'q', function()
-            hideAllWindows(state.floats)
-        end, { buffer = float.buf, silent = true })
-        vim.keymap.set('n', '<Esc>', function()
-            hideAllWindows(state.floats)
-        end, { buffer = float.buf, silent = true })
-    end
     return floats
 end
 
@@ -90,21 +85,32 @@ local function render_tower(tower, float)
     end
 end
 
-function M.render(game)
-    state.game = game
-    state.dims = winc.calculate_window_dimensions(state.game.disks)
-    -- print('Created the window dimensions: ', vim.inspect(state.dims))
-    if not state.floats then
-        state.floats = create_game_buffers()
-    end
-    local panel_id = state.floats.panel.win
-    if panel_id == nil or not vim.api.nvim_win_is_valid(panel_id) then
-        showAllWindows(state.floats)
-        vim.api.nvim_set_current_win(state.floats.tower1.win)
-    end
-    for i, tower in ipairs(game.towers) do
-        render_tower(tower, state.floats['tower' .. i])
-    end
+function Board:activate_tower(tower_index)
+    tower_index = tower_index or 1
+   local win =  self.floats['tower' .. tower_index].win
+   if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_set_current_win(win)
+   end
 end
 
-return M
+function Board:render()
+    self.dims = winc.calculate_window_dimensions(self.game.disks)
+    -- print('Created the window dimensions: ', vim.inspect(state.dims))
+    if not self.floats then
+        self.floats = create_game_buffers(self.dims)
+        for _, float in pairs(self.floats) do
+            vim.keymap.set('n', 'q', function() hideAllWindows(self.floats) end, { buffer = float.buf, silent = true })
+            vim.keymap.set('n', '<Esc>', function () hideAllWindows(self.floats) end, { buffer = float.buf, silent = true })
+        end
+    end
+    local panel_id = self.floats.panel.win
+    if panel_id == nil or not vim.api.nvim_win_is_valid(panel_id) then
+        showAllWindows(self.floats)
+    end
+    for i, tower in ipairs(self.game.towers) do
+        render_tower(tower, self.floats['tower' .. i])
+    end
+    self:activate_tower(self.active_tower)
+end
+
+return Board
