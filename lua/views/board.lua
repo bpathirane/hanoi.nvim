@@ -4,7 +4,7 @@ local Board = {}
 Board.__index = Board
 
 function Board:new(game, controller)
-    return setmetatable({ game = game, controller = controller }, self)
+    return setmetatable({ game = game, active_tower = nil, controller = controller }, self)
 end
 
 local disk_char = '\u{2593}' --'\u{1F7E7}'  ▓, an orange block respectively
@@ -85,12 +85,37 @@ local function render_tower(tower, float)
     end
 end
 
+function setFloatBorder(win, border)
+    -- Save buffer and current window config
+    local win_config = vim.api.nvim_win_get_config(win)
+    local buf = vim.api.nvim_win_get_buf(win)
+
+    -- Close the current window
+    vim.api.nvim_win_close(win, true)
+
+    -- Modify the border in the config
+    win_config.border = border
+
+    -- Reopen the window with the new border
+    local new_win = vim.api.nvim_open_win(buf, true, win_config)
+
+    return new_win
+end
+
 function Board:activate_tower(tower_index)
     tower_index = tower_index or 1
-   local win =  self.floats['tower' .. tower_index].win
-   if vim.api.nvim_win_is_valid(win) then
-        vim.api.nvim_set_current_win(win)
-   end
+    if (self.active_tower ~= nil and tower_index == self.active_tower) then
+        return
+    end
+    local new_tower = self.floats['tower' .. tower_index]
+    new_tower.win = setFloatBorder(new_tower.win, 'double')
+    if (self.active_tower ~= nil) then
+    local old_tower = self.floats['tower' .. self.active_tower]
+    old_tower.win = setFloatBorder(old_tower.win, 'single')
+    end
+
+    vim.api.nvim_set_current_win(new_tower.win)
+    self.active_tower = tower_index
 end
 
 function Board:render()
@@ -100,9 +125,26 @@ function Board:render()
         self.floats = create_game_buffers(self.dims)
         for _, float in pairs(self.floats) do
             vim.keymap.set('n', 'q', function() hideAllWindows(self.floats) end, { buffer = float.buf, silent = true })
-            vim.keymap.set('n', '<Esc>', function () hideAllWindows(self.floats) end, { buffer = float.buf, silent = true })
+            vim.keymap.set('n', '<Esc>', function() hideAllWindows(self.floats) end,
+                { buffer = float.buf, silent = true })
         end
     end
+    vim.keymap.set('n', 'l', function()
+        self:activate_tower(2)
+    end, { buffer = self.floats.tower1.buf, silent = true })
+
+    vim.keymap.set('n', 'l', function()
+        self:activate_tower(3)
+    end, { buffer = self.floats.tower2.buf, silent = true })
+
+    vim.keymap.set('n', 'h', function()
+        self:activate_tower(1)
+    end, { buffer = self.floats.tower2.buf, silent = true })
+
+    vim.keymap.set('n', 'h', function()
+        self:activate_tower(2)
+    end, { buffer = self.floats.tower3.buf, silent = true })
+
     local panel_id = self.floats.panel.win
     if panel_id == nil or not vim.api.nvim_win_is_valid(panel_id) then
         showAllWindows(self.floats)

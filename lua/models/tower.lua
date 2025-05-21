@@ -2,7 +2,7 @@ local Disk = require('models.disk')
 local Tower = {}
 Tower.__index = Tower
 
-function Tower.new(label, capacity)
+function Tower:new(label, capacity)
     return setmetatable({ label = label, capacity = capacity, disks = {} }, Tower)
 end
 
