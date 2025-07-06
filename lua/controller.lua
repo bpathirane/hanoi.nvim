@@ -21,7 +21,7 @@ function Controller:open_towers_of_hanoi()
     if not self.state.board then
         self.state.board = Board:new(self.state.game, self)
     end
-    print('Rendering game:', vim.inspect(self.state))
+    -- print('Rendering game:', vim.inspect(self.state))
     self.state.board:render()
 end
 
